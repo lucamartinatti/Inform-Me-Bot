@@ -198,7 +198,7 @@ async def automatic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(
         f"✅ Preferences saved!\n"
         f"{'🔔 You will receive daily updates at 7:00 AM.' if automatic else ''}\n\n"
-        "🔄 Fetching and analyzing news...",
+        "🔄 Fetching news...",
         reply_markup=ReplyKeyboardRemove(),
     )
 

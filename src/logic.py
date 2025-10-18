@@ -167,7 +167,10 @@ def format_clusters_for_telegram(clusters, max_clusters=10):
 
     sorted_clusters = sorted(clusters.items(), key=lambda x: len(x[1]), reverse=True)
     multi_article_clusters = [
-        (cid, arts) for cid, arts in sorted_clusters  # if len(arts) > 1
+        (arts[0]["title"], arts) for cid, arts in sorted_clusters if len(arts) > 1
+    ]
+    single_article_cluster = [
+        arts[0] for cid, arts in sorted_clusters if len(arts) == 1
     ]
 
     if not multi_article_clusters:
@@ -175,14 +178,16 @@ def format_clusters_for_telegram(clusters, max_clusters=10):
 
     # Header message
     # header = f"🔍 *Found {len(multi_article_clusters)} news clusters*\n\n"
+    # now = datetime.now().strftime("%d-%m-%Y")
+    # header = f"🗞 *News Clusters for {escape_markdown_v2(now)}*\n\n"
     header = ""
     current_message = header
 
-    for _, (cluster_id, articles) in enumerate(
+    for _, (cluster_title, articles) in enumerate(
         multi_article_clusters[:max_clusters], 1
     ):
         # Use the first (presumably most representative) article title as cluster title
-        cluster_title = articles[0]["title"][:120]  # Limit length
+        cluster_title = cluster_title[:120]  # Limit length
         cluster_title_escaped = escape_markdown_v2(cluster_title)
 
         # Build cluster section
@@ -219,23 +224,51 @@ def format_clusters_for_telegram(clusters, max_clusters=10):
         else:
             current_message += cluster_text
 
+    # Add single article clusters at the end
+    if single_article_cluster:
+        single_title_escaped = escape_markdown_v2("Mixed Articles")
+
+        single_text = f"*{single_title_escaped}*\n\n"
+
+        for _, article in enumerate(single_article_cluster[:10], 1):
+            title = article["title"][:100]  # Truncate long titles
+            title_escaped = escape_markdown_v2(title)
+
+            url = article["link"].strip()
+            source = escape_markdown_v2(article["source"][:30])
+
+            single_text += f"  • [{title_escaped}]({url})\n"
+            single_text += f"    _via {source}_\n\n"
+
+        if len(single_article_cluster) > 10:
+            remaining = len(single_article_cluster) - 10
+            single_text += f"  _\\.\\.\\.and {remaining} more articles_\n\n"
+
+        single_text += "─" * 35 + "\n\n"
+
+        if len(current_message + single_text) > 3900:
+            messages.append(current_message)
+            current_message = header + single_text
+        else:
+            current_message += single_text
+
     # Add final message
     if current_message and current_message != header:
         messages.append(current_message)
 
     # Add summary footer to last message
-    if messages:
-        single_clusters = [c for c in sorted_clusters if len(c[1]) == 1]
-        if single_clusters:
-            footer = (
-                f"\n💡 _{len(single_clusters)} unique articles not grouped with others_"
-            )
+    # if messages:
+    #     single_clusters = [c for c in sorted_clusters if len(c[1]) == 1]
+    #     if single_clusters:
+    #         footer = (
+    #             f"\n💡 _{len(single_clusters)} unique articles not grouped with others_"
+    #         )
 
-            # Check if footer fits in last message
-            if len(messages[-1] + footer) < 4000:
-                messages[-1] += footer
-            else:
-                messages.append(footer)
+    #         # Check if footer fits in last message
+    #         if len(messages[-1] + footer) < 4000:
+    #             messages[-1] += footer
+    #         else:
+    #             messages.append(footer)
 
     return messages if messages else ["No news found for your query\\."]
 
@@ -275,7 +308,7 @@ async def process_and_send_news(
 
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"✅ Fetched {len(feeds)} articles. Clustering...",
+            text="✅ Fetched articles. Analyzing...",
         )
 
         # Filter articles from last 48 hours
@@ -284,6 +317,15 @@ async def process_and_send_news(
         clusters = cluster_news_titles(recent_feeds, similarity_threshold=0.5)
 
         messages = format_clusters_for_telegram(clusters)
+
+        if messages:
+            now = datetime.now().strftime("%d-%m-%Y")
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=f"🗞 *News Clusters for {escape_markdown_v2(now)}*\n\n",
+                parse_mode="MarkdownV2",
+                disable_web_page_preview=True,
+            )
 
         for msg in messages:
             await context.bot.send_message(
