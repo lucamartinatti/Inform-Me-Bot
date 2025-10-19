@@ -228,7 +228,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not preferences:
         await update.message.reply_text(
-            "You don't have saved preferences yet.\n" "Send /start to set them up!"
+            "You don't have saved preferences yet.\nSend /start to set them up!"
         )
         return
 

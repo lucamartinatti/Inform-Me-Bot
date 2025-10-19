@@ -67,7 +67,9 @@ def init_db_pool():
 
     try:
         connection_pool = psycopg2.pool.SimpleConnectionPool(
-            1, 10, database_url  # min and max connections
+            1,
+            10,
+            database_url,  # min and max connections
         )
         logger.info("Database connection pool created successfully")
     except Exception as e:

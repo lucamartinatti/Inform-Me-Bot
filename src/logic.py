@@ -48,7 +48,6 @@ def cluster_news_titles(feeds, similarity_threshold=0.5):
         return {}
 
     try:
-
         titles = [entry.get("title", "") for entry in feeds]
 
         model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
