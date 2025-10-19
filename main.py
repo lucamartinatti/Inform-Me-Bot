@@ -48,6 +48,10 @@ def main():
     # Replace with your bot token from @BotFather
     BOT_TOKEN = os.getenv("TOKEN")
 
+    if not BOT_TOKEN:
+        logger.error("BOT_TOKEN is not set. Please set the TOKEN environment variable.")
+        return
+
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
 
