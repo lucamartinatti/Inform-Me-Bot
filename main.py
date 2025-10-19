@@ -41,6 +41,8 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    logger.info("Starting bot...")
+
     """Start the bot."""
     # Initialize database
     init_database()

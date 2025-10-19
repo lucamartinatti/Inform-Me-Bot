@@ -30,6 +30,7 @@ def create_database_if_not_exists():
 
     try:
         # Connect to default 'postgres' database
+        logger.info(f"Checking if {admin_url} database exists...")
         conn = psycopg2.connect(admin_url)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
