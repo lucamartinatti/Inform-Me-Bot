@@ -12,7 +12,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY ./src /app
+COPY ./src /app/src
 COPY ./main.py /app
 
 # Command to run the Telegram bot
