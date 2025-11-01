@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from urllib.parse import urlparse
@@ -66,7 +67,7 @@ def init_db_pool():
         raise ValueError("DATABASE_URL environment variable not set")
 
     try:
-        connection_pool = psycopg2.pool.SimpleConnectionPool(
+        connection_pool = pool.SimpleConnectionPool(
             1,
             10,
             database_url,  # min and max connections

@@ -15,5 +15,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "matplotlib>=3.10.7",
     "ruff>=0.14.0",
 ]
